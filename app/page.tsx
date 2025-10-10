@@ -56,9 +56,7 @@ const suggestions = [
 const InputDemo = () => {
   const [text, setText] = useState<string>('');
   const [model, setModel] = useState<string>(models[0].id);
-  const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
-  const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
-
+  
   const [firstMessage, setFirstMessage] = useState<string>("");
 
   const { messages, status, sendMessage, setMessages, regenerate } = useChat();
@@ -67,7 +65,7 @@ const InputDemo = () => {
     if (firstMessage) {
       setMessages([
         {
-          id: crypto.randomUUID(),
+          id: "1",
           role: "system",
           parts: [
             { type: "text", text: firstMessage }
