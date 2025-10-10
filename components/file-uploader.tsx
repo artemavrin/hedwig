@@ -1,8 +1,6 @@
 "use client";
 
-import { FileWithPreview, useFileUpload } from "@/hooks/use-file-upload";
-import Image from "next/image";
-import { AnimatePresence, motion } from "motion/react";
+import { useFileUpload } from "@/hooks/use-file-upload";
 import { DragEvent, useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";

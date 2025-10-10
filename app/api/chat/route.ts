@@ -1,4 +1,4 @@
-import { streamText, UIMessage, convertToModelMessages } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { createOllama } from 'ollama-ai-provider-v2';
 

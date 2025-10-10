@@ -2,14 +2,11 @@
 
 import {
   PromptInput,
-  PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuTrigger,
+  
   PromptInputAttachment,
   PromptInputAttachments,
   PromptInputBody,
-  PromptInputButton,
+  
   type PromptInputMessage,
   PromptInputModelSelect,
   PromptInputModelSelectContent,
@@ -21,22 +18,19 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { CopyIcon, GlobeIcon, Loader, MicIcon, RefreshCcwIcon, Trash2Icon, BookOpenIcon } from 'lucide-react';
-import { Fragment, useEffect, useState, useRef } from 'react';
+import { CopyIcon, Loader, RefreshCcwIcon, Trash2Icon } from 'lucide-react';
+import { Fragment, useEffect, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
   Conversation,
   ConversationContent,
-  ConversationEmptyState,
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import { useStickToBottomContext } from 'use-stick-to-bottom';
 import { Message, MessageContent } from '@/components/ai-elements/message';
 import { Response } from '@/components/ai-elements/response';
-import ReactMarkdown from 'react-markdown';
 import { FileUploader } from '@/components/file-uploader';
 import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
-import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning';
 import { Action } from '@/components/ai-elements/actions';
 import { Actions } from '@/components/ai-elements/actions';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
