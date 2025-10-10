@@ -1,103 +1,269 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import {
+  PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
+  PromptInputButton,
+  type PromptInputMessage,
+  PromptInputModelSelect,
+  PromptInputModelSelectContent,
+  PromptInputModelSelectItem,
+  PromptInputModelSelectTrigger,
+  PromptInputModelSelectValue,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input';
+import { CopyIcon, GlobeIcon, Loader, MicIcon, RefreshCcwIcon } from 'lucide-react';
+import { Fragment, useEffect, useState, useRef } from 'react';
+import { useChat } from '@ai-sdk/react';
+import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from '@/components/ai-elements/conversation';
+import { useStickToBottomContext } from 'use-stick-to-bottom';
+import { Message, MessageContent } from '@/components/ai-elements/message';
+import { Response } from '@/components/ai-elements/response';
+import ReactMarkdown from 'react-markdown';
+import { FileUploader } from '@/components/file-uploader';
+import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion';
+import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning';
+import { Action } from '@/components/ai-elements/actions';
+import { Actions } from '@/components/ai-elements/actions';
+import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
+
+const models = [
+  { id: 'gpt-oss:20b', name: 'gpt-oss 20b', description: 'Базовая модель' },
+  { id: 'gpt-oss:120b', name: 'gpt-oss 120b', description: 'Продвинутая модель' },
+];
+
+const suggestions = [
+  {
+    title: 'Сделай краткое изложение',
+    suggestion: 'Перескажи кратко с выделением ключевых моментов'
+  },
+  {
+    title: 'Выдели задачи',
+    suggestion: 'Выдели задачи, исполнителей и сроки'
+  }
+];
+
+const InputDemo = () => {
+  const [text, setText] = useState<string>('');
+  const [model, setModel] = useState<string>(models[0].id);
+  const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
+
+  const [firstMessage, setFirstMessage] = useState<string>("");
+
+  const { messages, status, sendMessage, setMessages, regenerate } = useChat();
+
+  useEffect(() => {
+    if (firstMessage) {
+      setMessages([
+        {
+          id: crypto.randomUUID(),
+          role: "system",
+          parts: [
+            { type: "text", text: firstMessage }
+          ]
+        }
+      ])
+    }
+  }, [firstMessage])
+
+  // Компонент для автоматического скролла
+  const AutoScroll = () => {
+    const { scrollToBottom } = useStickToBottomContext();
+    
+    useEffect(() => {
+      if (messages.length > 0) {
+        // Небольшая задержка для корректного скролла
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }
+    }, [messages, scrollToBottom]);
+    
+    return null;
+  };
+
+  const handleSubmit = (message: PromptInputMessage) => {
+
+    if (!message.text) {
+      return;
+    }
+    sendMessage({ text: message.text }, { body: { model: model } });
+
+    setText('');
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    sendMessage({ text: suggestion }, { body: { model: model } });
+
+  };
+
+  if (messages.length === 0) {
+    return <FileUploader updateText={setFirstMessage} />;
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="max-w-4xl mx-auto p-6 relative size-full">
+      <div className="flex flex-col h-full">
+        <Conversation>
+          <ConversationContent>
+            <AutoScroll />
+            {messages.map((message) => (
+              <div key={message.id}>
+                {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
+                  <Sources>
+                    <SourcesTrigger
+                      count={
+                        message.parts.filter(
+                          (part) => part.type === 'source-url',
+                        ).length
+                      }
+                    />
+                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
+                      <SourcesContent key={`${message.id}-${i}`}>
+                        <Source
+                          key={`${message.id}-${i}`}
+                          href={part.url}
+                          title={part.url}
+                        />
+                      </SourcesContent>
+                    ))}
+                  </Sources>
+                )}
+                {message.parts.map((part, i) => {
+                  switch (part.type) {
+                    case 'text':
+                      return (
+                        <Fragment key={`${message.id}-${i}`}>
+                          <Message from={message.role}>
+                            <MessageContent>
+                              <Response>
+                                {part.text}
+                              </Response>
+                            </MessageContent>
+                          </Message>
+                          {message.role === 'assistant' && i === messages.length - 1 && (
+                            <Actions className="mt-2">
+                              <Action
+                                onClick={() => regenerate()}
+                                label="Retry"
+                              >
+                                <RefreshCcwIcon className="size-3" />
+                              </Action>
+                              <Action
+                                onClick={() =>
+                                  navigator.clipboard.writeText(part.text)
+                                }
+                                label="Copy"
+                              >
+                                <CopyIcon className="size-3" />
+                              </Action>
+                            </Actions>
+                          )}
+                        </Fragment>
+                      );
+                    // case 'reasoning':
+                    //   return (
+                    //     <Reasoning
+                    //       key={`${message.id}-${i}`}
+                    //       className="w-full"
+                    //       isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                    //     >
+                    //       <ReasoningTrigger />
+                    //       <ReasoningContent>{part.text}</ReasoningContent>
+                    //     </Reasoning>
+                    //   );
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            ))}
+            {status === 'submitted' && <Loader className="size-4 animate-spin" />}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+        <Suggestions className="animate-fade-up animate-once">
+          {suggestions.map((suggestion) => (
+            <Suggestion
+              key={suggestion.title}
+              onClick={handleSuggestionClick}
+              suggestion={suggestion.suggestion}
+            >
+              {suggestion.title}
+            </Suggestion>
+          ))}
+        </Suggestions>
+        <PromptInput onSubmit={handleSubmit} className="mt-4 animate-fade-up animate-once delay-100" globalDrop multiple>
+          <PromptInputBody>
+            <PromptInputAttachments>
+              {(attachment) => <PromptInputAttachment data={attachment} />}
+            </PromptInputAttachments>
+            <PromptInputTextarea
+              onChange={(e) => setText(e.target.value)}
+              value={text}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          </PromptInputBody>
+          <PromptInputToolbar>
+            <PromptInputTools>
+              {/* <PromptInputActionMenu>
+                <PromptInputActionMenuTrigger />
+                <PromptInputActionMenuContent>
+                  <PromptInputActionAddAttachments />
+                </PromptInputActionMenuContent>
+              </PromptInputActionMenu>
+              <PromptInputButton
+                onClick={() => setUseWebSearch(!useWebSearch)}
+                variant={useWebSearch ? 'default' : 'ghost'}
+              >
+                <GlobeIcon size={16} />
+                <span>Search</span>
+              </PromptInputButton> */}
+              <PromptInputModelSelect
+                onValueChange={(value) => {
+                  setModel(value);
+                }}
+                value={model}
+              >
+                <PromptInputModelSelectTrigger>
+                  <PromptInputModelSelectValue >{model}</PromptInputModelSelectValue>
+                </PromptInputModelSelectTrigger>
+                <PromptInputModelSelectContent>
+                  {models.map((model) => (
+                    <PromptInputModelSelectItem key={model.id} value={model.id}>
+                      <div className="flex flex-col items-start">
+                        <div className="text-sm font-medium">
+                          {model.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {model.description}
+                        </div>
+                      </div>
+                    </PromptInputModelSelectItem>
+                  ))}
+                </PromptInputModelSelectContent>
+              </PromptInputModelSelect>
+            </PromptInputTools>
+            <PromptInputSubmit disabled={!text && !status} status={status} />
+          </PromptInputToolbar>
+        </PromptInput>
+      </div>
     </div>
   );
-}
+};
+
+export default InputDemo;
