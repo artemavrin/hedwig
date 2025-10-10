@@ -21,7 +21,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { CopyIcon, GlobeIcon, Loader, MicIcon, RefreshCcwIcon } from 'lucide-react';
+import { CopyIcon, GlobeIcon, Loader, MicIcon, RefreshCcwIcon, Trash2Icon, BookOpenIcon } from 'lucide-react';
 import { Fragment, useEffect, useState, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
@@ -40,6 +40,8 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-e
 import { Action } from '@/components/ai-elements/actions';
 import { Actions } from '@/components/ai-elements/actions';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
+import { Button } from '@/components/ui/button';
+import { CollapsibleText, CollapsibleTextContent, CollapsibleTextTrigger } from '@/components/ai-elements/collapsible-text';
 
 const models = [
   { id: 'gpt-oss:20b', name: 'gpt-oss 20b', description: 'Базовая модель' },
@@ -112,6 +114,15 @@ const InputDemo = () => {
 
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex !== -1) {
+      // Удаляем сообщение и все последующие
+      const newMessages = messages.slice(0, messageIndex);
+      setMessages(newMessages);
+    }
+  };
+
   if (messages.length === 0) {
     return <FileUploader updateText={setFirstMessage} />;
   }
@@ -147,9 +158,35 @@ const InputDemo = () => {
                 {message.parts.map((part, i) => {
                   switch (part.type) {
                     case 'text':
+                      // Для системного сообщения (исходный текст файла) используем CollapsibleText
+                      if (message.role === 'system') {
+                        return (
+                          <Fragment key={`${message.id}-${i}`}>
+                            <CollapsibleText defaultOpen={false}>
+                              <CollapsibleTextTrigger text={part.text} />
+                              <CollapsibleTextContent>
+                                {part.text}
+                              </CollapsibleTextContent>
+                            </CollapsibleText>
+                          </Fragment>
+                        );
+                      }
+                      
                       return (
                         <Fragment key={`${message.id}-${i}`}>
-                          <Message from={message.role}>
+                          <Message from={message.role} className="flex items-center">
+                            {message.role === 'user' && (
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <Button
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Удалить сообщение и все последующие"
+                                >
+                                  <Trash2Icon className="size-3" />
+                                </Button>
+                              </div>
+                            )}
                             <MessageContent>
                               <Response>
                                 {part.text}
