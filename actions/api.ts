@@ -48,12 +48,12 @@ export const getTextFromAudio = async (audio: File) => {
     
     console.log(`Длительность аудио: ${durationMinutes.toFixed(2)} минут`)
     
-    // Если файл больше 30 минут, разбиваем на части
-    if (durationMinutes > 30) {
-      console.log("Файл слишком большой, разбиваем на части по 10 минут")
+    // Если файл больше 10 минут, разбиваем на части
+    if (durationMinutes > 10) {
+      console.log("Файл слишком большой, разбиваем на части по 2 минуты")
       
       // Разбиваем аудио на части
-      const audioChunks = await splitAudioIntoChunks(audio, 10)
+      const audioChunks = await splitAudioIntoChunks(audio, 2)
       console.log(`Создано ${audioChunks.length} частей`)
       
       // Распознаем текст из каждой части
