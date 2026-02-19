@@ -6,12 +6,12 @@ export const maxDuration = 30;
 
 const omni = createOpenAICompatible({
   name: 'omni',
-  baseURL: 'http://192.168.181.145:10240/v1',
+  baseURL: 'http://192.168.172.145:10240/v1',
 });
 
 const ollama = createOllama({
   name: 'ollama',
-  baseURL: 'http://192.168.181.145:11434/api',
+  baseURL: 'http://192.168.172.145:11434/api',
 });
 
 

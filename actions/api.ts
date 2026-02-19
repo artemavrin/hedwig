@@ -2,7 +2,7 @@
 
 import { convertToMp3, getAudioDuration, splitAudioIntoChunks } from '@/lib/audio-converter'
 
-const baseUrl = "http://192.168.181.145:10240/v1"
+const baseUrl = "http://192.168.172.145:10240/v1"
 
 // Функция для распознавания текста из одного аудио файла
 const transcribeAudioChunk = async (audioFile: File): Promise<string | null> => {
