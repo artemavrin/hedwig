@@ -2,11 +2,11 @@
 
 import {
   PromptInput,
-  
+
   PromptInputAttachment,
   PromptInputAttachments,
   PromptInputBody,
-  
+
   type PromptInputMessage,
   PromptInputModelSelect,
   PromptInputModelSelectContent,
@@ -18,7 +18,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { CopyIcon, Loader, RefreshCcwIcon, Trash2Icon } from 'lucide-react';
+import { CopyIcon, Loader, PaperclipIcon, RefreshCcwIcon, Trash2Icon } from 'lucide-react';
 import { Fragment, useEffect, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import {
@@ -36,6 +36,7 @@ import { Actions } from '@/components/ai-elements/actions';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
 import { Button } from '@/components/ui/button';
 import { CollapsibleText, CollapsibleTextContent, CollapsibleTextTrigger } from '@/components/ai-elements/collapsible-text';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const models = [
   { id: 'gpt-oss:20b', name: 'gpt-oss 20b', description: 'Базовая модель' },
@@ -51,12 +52,24 @@ const suggestions = [
     title: 'Выдели задачи',
     suggestion: 'Выдели задачи, исполнителей и сроки'
   }
+  ,
+  {
+    title: 'Сделай протокол встречи',
+    suggestion: `Сделай протокол встречи по структуре:
+Дата, время, место встречи.
+ФИО и должности участников.
+Цель встречи.
+Основная информация (кратко).
+Ключевые моменты.
+Договоренности: кто, что и когда делает.
+    `
+  }
 ];
 
 const InputDemo = () => {
   const [text, setText] = useState<string>('');
   const [model, setModel] = useState<string>(models[0].id);
-  
+
   const [firstMessage, setFirstMessage] = useState<string>("");
 
   const { messages, status, sendMessage, setMessages, regenerate } = useChat();
@@ -78,7 +91,7 @@ const InputDemo = () => {
   // Компонент для автоматического скролла
   const AutoScroll = () => {
     const { scrollToBottom } = useStickToBottomContext();
-    
+
     useEffect(() => {
       if (messages.length > 0) {
         // Небольшая задержка для корректного скролла
@@ -87,7 +100,7 @@ const InputDemo = () => {
         }, 100);
       }
     }, [messages, scrollToBottom]);
-    
+
     return null;
   };
 
@@ -163,7 +176,7 @@ const InputDemo = () => {
                           </Fragment>
                         );
                       }
-                      
+
                       return (
                         <Fragment key={`${message.id}-${i}`}>
                           <Message from={message.role} className="flex items-center">
@@ -287,7 +300,26 @@ const InputDemo = () => {
                 </PromptInputModelSelectContent>
               </PromptInputModelSelect>
             </PromptInputTools>
-            <PromptInputSubmit disabled={!text && !status} status={status} />
+            <div className='flex items-center gap-2'>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" type='button'><PaperclipIcon /> Загрузить новый файл</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Загрузить новый файл?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Вся текущая история будет удалена без возможности восстановления.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Отмена</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => window.location.reload()}>Да</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <PromptInputSubmit disabled={!text && !status} status={status} />
+            </div>
           </PromptInputToolbar>
         </PromptInput>
       </div>
